@@ -40,20 +40,37 @@ export function FlowerDisplay({ flowerEntry, showAnimation = false }: FlowerDisp
             <span className="text-4xl opacity-30">{flower.aura}</span>
           </motion.div>
           
-          {/* 主花朵 */}
-          <motion.div
-            className="text-6xl relative z-10"
-            animate={showAnimation ? {
-              scale: [1, 1.2, 1],
-              rotate: [0, 5, -5, 0]
-            } : {}}
-            transition={{ duration: 1 }}
-            style={{
-              filter: `drop-shadow(0 0 10px ${flower.primaryColor}40)`
-            }}
-          >
-            {flower.baseEmoji}
-          </motion.div>
+          {/* 主花朵：优先使用自定义图片，其次使用 emoji */}
+          {flower.imageUrl ? (
+            <motion.img
+              src={flower.imageUrl}
+              alt={mood.name}
+              className="relative z-10 w-28 h-28 object-contain select-none"
+              draggable={false}
+              animate={showAnimation ? {
+                scale: [1, 1.1, 1],
+                rotate: [0, 3, -3, 0]
+              } : {}}
+              transition={{ duration: 1 }}
+              style={{
+                filter: `drop-shadow(0 0 10px ${flower.primaryColor}40)`
+              }}
+            />
+          ) : (
+            <motion.div
+              className="text-6xl relative z-10"
+              animate={showAnimation ? {
+                scale: [1, 1.2, 1],
+                rotate: [0, 5, -5, 0]
+              } : {}}
+              transition={{ duration: 1 }}
+              style={{
+                filter: `drop-shadow(0 0 10px ${flower.primaryColor}40)`
+              }}
+            >
+              {flower.baseEmoji}
+            </motion.div>
+          )}
           
           {/* 装饰元素 */}
           <div className="absolute inset-0">

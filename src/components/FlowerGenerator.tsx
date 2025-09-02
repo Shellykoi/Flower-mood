@@ -108,6 +108,10 @@ export interface GeneratedFlower {
   decorations: string[];
   aura: string;
   description: string;
+  /**
+   * 可选：自定义图片/SVG 链接。如果存在，展示组件将以图片为主进行渲染
+   */
+  imageUrl?: string;
 }
 
 export interface FlowerEntry {
@@ -182,6 +186,73 @@ function generateColorsFromHue(seed: number, moodColors?: string[]): { primary: 
     : { primary: hsl1, secondary: presetB };
 }
 
+// ========================= 自定义花朵库（可扩展） =========================
+export type CustomFlowerRarity = 'common' | 'rare' | 'legendary';
+
+export interface CustomFlower {
+  id: string;
+  name: string;
+  imageUrl: string; // 支持 png/jpg/svg 的公网链接或相对路径
+  tags: string[];   // 与关键词匹配的主题标签，如 '音乐'、'旅行'
+  rarity?: CustomFlowerRarity; // 稀有度影响抽样概率
+}
+
+// 你可以在这里不断添加自己的作品链接（隐藏款）
+export const CUSTOM_FLOWERS: CustomFlower[] = [
+  {
+    id: 'dream-aqua-001',
+    name: '梦海蓝',
+    imageUrl: 'https://example.com/flowers/dream-aqua.svg',
+    tags: ['梦幻', '睡觉', '自然'],
+    rarity: 'rare'
+  },
+  {
+    id: 'sunny-pop-002',
+    name: '晴彩',
+    imageUrl: 'https://example.com/flowers/sunny-pop.svg',
+    tags: ['阳光', '开心', '运动'],
+    rarity: 'common'
+  },
+  // 在此继续追加你的图片链接...
+  {
+    id: 'dream-serene-001',
+    name: '梦幻·恬静',
+    imageUrl: 'https://shellykoi.github.io/Flower-mood/flowers/dream-serene-001.jpg',
+    tags: ['梦幻', '恬静', '平静', '夜色'],
+    rarity: 'legendary'
+  },
+];
+
+function weightOfRarity(rarity: CustomFlowerRarity | undefined): number {
+  if (rarity === 'legendary') return 6;
+  if (rarity === 'rare') return 3;
+  return 1; // common 或未指定
+}
+
+function pickCustomFlower(keywords: string[], seed: number): CustomFlower | null {
+  if (CUSTOM_FLOWERS.length === 0) return null;
+
+  // 为匹配到的自定义花朵加权；若没有关键词匹配，也允许少量随机掉落
+  const candidates = CUSTOM_FLOWERS.map((f) => {
+    const matches = f.tags.some(t => keywords.includes(t));
+    const rarityWeight = weightOfRarity(f.rarity);
+    const matchWeight = matches ? 3 : 1; // 关键词匹配权重
+    return { f, w: rarityWeight * matchWeight };
+  });
+
+  const total = candidates.reduce((s, c) => s + c.w, 0);
+  if (total === 0) return null;
+
+  // 稳定随机抽样
+  let r = seededRandom01(seed, 50) * total;
+  for (const c of candidates) {
+    if ((r -= c.w) <= 0) {
+      return c.f;
+    }
+  }
+  return candidates[candidates.length - 1].f;
+}
+
 export function generateFlower(mood: Mood, note: string): FlowerEntry {
   const today = new Date().toISOString().split('T')[0];
   
@@ -214,6 +285,11 @@ export function generateFlower(mood: Mood, note: string): FlowerEntry {
   // 选择基底花朵（稳定随机）
   const baseEmoji = pickStable(mood.baseFlowers, seed, 12);
 
+  // 按权重与关键词尝试选用“自定义花朵库”的图片
+  // 基础触发概率：20%；若关键词命中自定义条目的 tag 则更容易触发
+  const tryCustom = seededRandom01(seed, 13) > 0.8 || keywords.length > 0;
+  const custom = tryCustom ? pickCustomFlower(keywords, seed) : null;
+
   // 生成描述
   const description = generateDescription(mood, keywords, seed);
   
@@ -228,7 +304,8 @@ export function generateFlower(mood: Mood, note: string): FlowerEntry {
       secondaryColor,
       decorations,
       aura,
-      description
+      description,
+      imageUrl: custom?.imageUrl
     }
   };
 }

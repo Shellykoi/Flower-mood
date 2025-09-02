@@ -4,6 +4,8 @@
   import path from 'path';
 
   export default defineConfig({
+    // GitHub Pages 部署到 https://<user>.github.io/Flower-mood/ 时需要指定仓库名作为 base
+    base: '/Flower-mood/',
     plugins: [react()],
     resolve: {
       extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
@@ -51,7 +53,7 @@
     },
     build: {
       target: 'esnext',
-      outDir: 'build',
+      outDir: 'dist',
     },
     server: {
       port: 3000,

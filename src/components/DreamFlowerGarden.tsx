@@ -117,8 +117,8 @@ export function DreamFlowerGarden() {
       <div className="max-w-md mx-auto space-y-6 relative z-10">
         {/* Header */}
         <div className="text-center py-6">
-          <h1 className="text-2xl text-purple-800 mb-2">梦幻花园</h1>
-          <p className="text-purple-600">记录心情，生成专属花朵</p>
+          <h1 className="text-2xl text-purple-800 mb-2">精怪小湲的花</h1>
+          <p className="text-purple-600">用来给koi使用，记录她的心情</p>
         </div>
 
         {/* 今日记录或花朵展示 */}
